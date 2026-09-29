@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "packbridge",
+  "version": "${version}",
+  "name": "PackBridge",
+  "description": "Load classic resource packs on modern Minecraft with automatic texture adaptation.",
+  "authors": ["Hypixel-Skyblock-Mods"],
+  "contact": {
+    "sources": "https://github.com/Hypixel-Skyblock-Mods/PackBridge",
+    "issues": "https://github.com/Hypixel-Skyblock-Mods/PackBridge/issues"
+  },
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "mixins": ["packbridge.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "=${minecraft_version}",
+    "java": ">=25"
+  }
+}
