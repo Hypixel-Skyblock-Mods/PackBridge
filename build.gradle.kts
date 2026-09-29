@@ -40,7 +40,6 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://maven.fabricmc.net/")
-        maven("https://maven.notenoughupdates.org/releases/")
     }
 }
 
@@ -61,8 +60,6 @@ subprojects {
         uploadFile.set(tasks.named("jar"))
         gameVersions.set(listOf(target.minecraft))
         loaders.set(listOf("fabric"))
-        dependencies {
-        }
         changelog.set(
             providers.environmentVariable("MODRINTH_CHANGELOG")
                 .orElse("See the corresponding GitHub release for changes."),
@@ -103,6 +100,29 @@ subprojects {
         }
         named("test") {
             java.setSrcDirs(listOf(rootProject.file("src/test/java")))
+        }
+    }
+
+    val sourceSets = extensions.getByType<org.gradle.api.tasks.SourceSetContainer>()
+    val smoke = sourceSets.create("smoke") {
+        java.setSrcDirs(listOf(rootProject.file("src/smoke/java")))
+        resources.setSrcDirs(listOf(rootProject.file("src/smoke/resources")))
+        compileClasspath += sourceSets["main"].output + sourceSets["main"].compileClasspath
+        runtimeClasspath += sourceSets["main"].runtimeClasspath
+    }
+    extensions.configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
+        mods {
+            register("packbridge") { sourceSet(sourceSets["main"]) }
+            register("packbridge_smoke") { sourceSet(smoke) }
+        }
+        runs {
+            register("smoke") {
+                client()
+                source(smoke)
+                vmArg("-Dpackbridge.smoke=true")
+                runDir("run/smoke/${target.minecraft}")
+                ideConfigGenerated(false)
+            }
         }
     }
 

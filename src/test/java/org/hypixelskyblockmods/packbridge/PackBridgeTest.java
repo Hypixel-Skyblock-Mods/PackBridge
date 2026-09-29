@@ -224,4 +224,19 @@ class PackBridgeTest {
             assertEquals(0xff123456, ImageIO.read(new ByteArrayInputStream(read(second, "textures/gui/sprites/hud/crosshair.png"))).getRGB(0, 0));
         }
     }
+
+    @Test void armorAndGlintPathsAreMappedWithoutChangingItemNames() throws Exception {
+        Path folder = folder(1);
+        write(folder, "textures/models/armor/diamond_layer_2.png", new byte[]{3});
+        write(folder, "textures/models/armor/leather_layer_1_overlay.png", new byte[]{4});
+        write(folder, "textures/misc/enchanted_item_glint.png", new byte[]{5});
+        write(folder, "textures/items/nether_brick.png", new byte[]{6});
+        try (PackResources pack = open(folder)) {
+            assertArrayEquals(new byte[]{3}, read(pack, "textures/entity/equipment/humanoid_leggings/diamond.png"));
+            assertArrayEquals(new byte[]{4}, read(pack, "textures/entity/equipment/humanoid/leather_overlay.png"));
+            assertArrayEquals(new byte[]{5}, read(pack, "textures/misc/enchanted_glint_armor.png"));
+            assertArrayEquals(new byte[]{5}, read(pack, "textures/misc/enchanted_glint_item.png"));
+            assertArrayEquals(new byte[]{6}, read(pack, "textures/item/nether_brick.png"));
+        }
+    }
 }

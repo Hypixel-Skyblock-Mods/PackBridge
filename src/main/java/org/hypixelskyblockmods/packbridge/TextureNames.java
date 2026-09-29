@@ -130,6 +130,13 @@ public final class TextureNames {
     public static String modernPath(String path) {
         String normalized = path.replace("textures/items/", "textures/item/")
                 .replace("textures/blocks/", "textures/block/");
+        var armor = java.util.regex.Pattern.compile(
+                "textures/models/armor/(leather|chainmail|iron|gold|diamond)_layer_([12])(_overlay)?(\\.png(?:\\.mcmeta)?)")
+                .matcher(normalized);
+        if (armor.matches()) {
+            return "textures/entity/equipment/" + (armor.group(2).equals("2") ? "humanoid_leggings/" : "humanoid/")
+                    + armor.group(1) + (armor.group(3) == null ? "" : armor.group(3)) + armor.group(4);
+        }
         if (!normalized.startsWith("textures/item/") && !normalized.startsWith("textures/block/")) {
             return switch (normalized) {
                 case "textures/misc/enchanted_item_glint.png" -> "textures/misc/enchanted_glint_item.png";
@@ -142,7 +149,7 @@ public final class TextureNames {
         if (dot < 0) dot = normalized.length();
         String name = normalized.substring(slash + 1, dot);
         // Item nether_brick and block nether_bricks were named alike in older packs.
-        String renamed = normalized.startsWith("textures/item/") && name.equals("netherbrick")
+        String renamed = normalized.startsWith("textures/item/") && (name.equals("netherbrick") || name.equals("nether_brick"))
                 ? "nether_brick" : RENAMES.getOrDefault(name, name);
         return normalized.substring(0, slash + 1) + renamed + normalized.substring(dot);
     }

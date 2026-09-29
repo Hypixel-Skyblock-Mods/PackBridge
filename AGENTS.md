@@ -47,3 +47,7 @@ Run `./gradlew build releaseManifest` (`.\gradlew.bat` on Windows). Tests run
 against both Minecraft targets and cover pack metadata, zip/folder loading,
 texture discovery and priority, model references, high-resolution sprites,
 chest UVs, malformed images, and reload behavior.
+
+After changing Minecraft hooks, run `:versions:mc26_1_2:runSmoke` and
+`:versions:mc26_2:runSmoke` to check both suppliers under Fabric with mixins
+active. Smoke sources remain under `src/smoke` and must not ship in the mod.

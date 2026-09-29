@@ -13,6 +13,7 @@ as Minecraft reads the pack, without changing its files.
 - Remaps classic chest texture faces and splits double-chest textures into
   modern left and right textures.
 - Preserves high-resolution texture pixels and renamed animation metadata.
+- Maps classic armor layers and enchantment glint to modern equipment paths.
 - Updates classic item model texture references and retains display settings.
 - Supports both zip and folder packs, including normal pack-stack priority.
 - Keeps explicit modern textures when a pack includes both formats.
@@ -63,6 +64,16 @@ versions/mc26_2/build/libs/PackBridge-1.0.0+mc26.2.jar
 Shared behavior lives in `src/main/java`. `gradle/targets.properties` defines
 the active targets. Each `versions/<target>` directory contains only its Gradle
 marker file; API differences belong in `src/<minecraft-version>/java`.
+
+Run the headless Fabric startup checks for both targets:
+
+```bash
+./gradlew :versions:mc26_1_2:runSmoke :versions:mc26_2:runSmoke
+```
+
+These checks exercise the actual supplier mixins and vanilla pack discovery
+before the game opens a window. Their test-only mod is excluded from release
+JARs.
 
 ## Releases
 

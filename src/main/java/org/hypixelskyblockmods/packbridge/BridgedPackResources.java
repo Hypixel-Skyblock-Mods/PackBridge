@@ -124,6 +124,12 @@ public final class BridgedPackResources extends AbstractPackResources {
             Identifier target = Identifier.fromNamespaceAndPath(source.getNamespace(), modern);
             IoSupplier<InputStream> supplier = raw.get(source);
             if (!target.equals(source) && !raw.containsKey(target)) result.putIfAbsent(target, supplier);
+            if (path.equals("textures/misc/enchanted_item_glint.png")
+                    || path.equals("textures/misc/enchanted_item_glint.png.mcmeta")) {
+                Identifier armorGlint = Identifier.fromNamespaceAndPath(source.getNamespace(),
+                        path.replace("enchanted_item_glint", "enchanted_glint_armor"));
+                if (!raw.containsKey(armorGlint)) result.putIfAbsent(armorGlint, supplier);
+            }
             if (path.startsWith("models/") && path.endsWith(".json")) {
                 IoSupplier<InputStream> rewritten = generated(target, () -> rewriteModel(supplier));
                 if (target.equals(source) || !raw.containsKey(target)) result.put(target, rewritten);

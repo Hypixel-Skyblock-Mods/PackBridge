@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "packbridge_smoke",
+  "version": "1.0.0",
+  "name": "PackBridge development smoke checks",
+  "environment": "client",
+  "entrypoints": {
+    "preLaunch": ["org.hypixelskyblockmods.packbridge.smoke.FabricSmoke"]
+  },
+  "depends": {"packbridge": "*"}
+}
