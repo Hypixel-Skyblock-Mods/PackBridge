@@ -77,11 +77,12 @@ JARs.
 
 ## Releases
 
-Only pushed `v*` tags invoke the release workflow. The tag must match
+Only pushed `v*` tags publish releases. The tag must match
 `v<mod_version>` from `gradle.properties`. The generated release manifest drives
 both Minecraft builds and the individual Modrinth uploads. Normal branch pushes
 and pull requests do not publish releases.
 
-Publishing requires a repository-scoped runner with labels `self-hosted`,
-`Linux`, `X64`, `wicked-game-01`, and `packbridge`, plus a `release` environment
-with the `MODRINTH_TOKEN` secret and `MODRINTH_PROJECT_ID` variable.
+The workflow uses a GitHub-hosted Ubuntu runner and a `release` environment
+with the `MODRINTH_TOKEN` secret and `MODRINTH_PROJECT_ID` variable. Run it
+manually to check publishing configuration and build both targets without
+uploading versions or creating a GitHub Release.

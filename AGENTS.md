@@ -31,10 +31,10 @@ PackBridge is a client-side Java/Fabric mod supporting Minecraft 26.1.2 and
 
 ## Release policy
 
-- Only pushed `v*` tags trigger `.github/workflows/release.yml`.
+- Pushed `v*` tags publish through `.github/workflows/release.yml`.
+- Manual workflow runs validate configuration and build without publishing.
 - The tag must equal `v<mod_version>` and every target must build successfully.
-- The release job uses the repository-scoped labels `self-hosted`, `Linux`,
-  `X64`, `wicked-game-01`, and `packbridge`.
+- The release job uses a GitHub-hosted Ubuntu runner.
 - The `release` environment owns the `MODRINTH_TOKEN` secret and
   `MODRINTH_PROJECT_ID` variable. Never commit credentials.
 - Normal branch pushes and pull requests do not build or publish in Actions.
