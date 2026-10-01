@@ -28,15 +28,17 @@ public final class BridgedPackResources extends AbstractPackResources {
     private static final long CACHE_LIMIT = 16 * 1024 * 1024;
     private final PackResources delegate;
     private final byte[] metadata;
+    private final boolean legacyInventory;
     private Map<Identifier, IoSupplier<InputStream>> adapted;
     private final LinkedHashMap<Identifier, byte[]> cache = new LinkedHashMap<>(16, 0.75f, true);
     private long cachedBytes;
     private boolean closed;
 
-    private BridgedPackResources(PackResources delegate, byte[] metadata) {
+    private BridgedPackResources(PackResources delegate, byte[] metadata, boolean legacyInventory) {
         super(delegate.location());
         this.delegate = delegate;
         this.metadata = metadata;
+        this.legacyInventory = legacyInventory;
     }
 
     public static PackResources wrap(PackResources original) {
@@ -60,7 +62,7 @@ public final class BridgedPackResources extends AbstractPackResources {
             pack.add("max_format", supported.deepCopy());
             // The old overlay format cannot express the current minor-version range.
             root.remove("overlays");
-            return new BridgedPackResources(original, root.toString().getBytes(StandardCharsets.UTF_8));
+            return new BridgedPackResources(original, root.toString().getBytes(StandardCharsets.UTF_8), format == 1);
         } catch (IOException | RuntimeException exception) {
             LOGGER.debug("Leaving unreadable pack {} unchanged", original.packId(), exception);
             return original;
@@ -138,10 +140,23 @@ public final class BridgedPackResources extends AbstractPackResources {
         });
         for (String namespace : delegate.getNamespaces(PackType.CLIENT_RESOURCES)) {
             addSprites(namespace, raw, result);
-            if (namespace.equals("minecraft")) addChests(namespace, raw, result);
+            if (namespace.equals("minecraft")) {
+                addChests(namespace, raw, result);
+                if (legacyInventory) addInventory(raw, result);
+            }
         }
         adapted = Map.copyOf(result);
         return adapted;
+    }
+
+    private void addInventory(Map<Identifier, IoSupplier<InputStream>> raw,
+                              Map<Identifier, IoSupplier<InputStream>> result) {
+        Identifier inventory = Identifier.withDefaultNamespace("textures/gui/container/inventory.png");
+        IoSupplier<InputStream> source = raw.get(inventory);
+        if (source != null && validImage(source, 256, 256)) {
+            result.put(inventory, generated(inventory,
+                    () -> ImageTransforms.png(ImageTransforms.inventoryCrafting(ImageTransforms.read(source.get())))));
+        }
     }
 
     private void addSprites(String namespace, Map<Identifier, IoSupplier<InputStream>> raw,

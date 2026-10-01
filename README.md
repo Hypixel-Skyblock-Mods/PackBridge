@@ -12,6 +12,8 @@ as Minecraft reads the pack, without changing its files.
   sprites, including hearts, armor, food, air, hotbar, and experience bars.
 - Remaps classic chest texture faces and splits double-chest textures into
   modern left and right textures.
+- Aligns pre-1.9 inventory crafting textures with the current input and result
+  slots, including high-resolution packs.
 - Preserves high-resolution texture pixels and renamed animation metadata.
 - Maps classic armor layers and enchantment glint to modern equipment paths.
 - Updates classic item model texture references and retains display settings.
@@ -57,8 +59,8 @@ On Windows, use `.\gradlew.bat`.
 The production JARs are written to:
 
 ```text
-versions/mc26_1_2/build/libs/PackBridge-1.0.0+mc26.1.2.jar
-versions/mc26_2/build/libs/PackBridge-1.0.0+mc26.2.jar
+versions/mc26_1_2/build/libs/PackBridge-1.0.1+mc26.1.2.jar
+versions/mc26_2/build/libs/PackBridge-1.0.1+mc26.2.jar
 ```
 
 Shared behavior lives in `src/main/java`. `gradle/targets.properties` defines

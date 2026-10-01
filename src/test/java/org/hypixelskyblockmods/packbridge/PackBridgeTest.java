@@ -26,6 +26,9 @@ import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.FallbackResourceManager;
+import net.minecraft.world.entity.EntityEquipment;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -153,6 +156,74 @@ class PackBridgeTest {
             assertEquals(sheet.getRGB(104, 0), heart.getRGB(0, 0));
             assertEquals(sheet.getRGB(121, 17), heart.getRGB(17, 17));
             assertArrayEquals(new byte[]{8}, read(pack, "textures/gui/sprites/hud/armor_full.png"));
+        }
+    }
+
+    @Test void legacyInventoryArtworkAlignsWithVanillaSlotsAtEveryResolution() throws Exception {
+        InventoryMenu menu = new InventoryMenu(new Inventory(null, new EntityEquipment()), false, null);
+        int[][] oldSlots = {{144, 36}, {88, 26}, {106, 26}, {88, 44}, {106, 44}};
+        for (int scale : new int[]{1, 2, 4}) {
+            Path folder = folder(1);
+            BufferedImage source = coordinates(256 * scale, 256 * scale);
+            // A translucent, vertically shaded background and distinct slot pixels.
+            for (int y = 24 * scale; y < 62 * scale; y++) {
+                for (int x = 86 * scale; x < 162 * scale; x++) source.setRGB(x, y, 0x40102000 | y);
+            }
+            for (int i = 0; i < oldSlots.length; i++) {
+                int x = (oldSlots[i][0] - 1) * scale, y = (oldSlots[i][1] - 1) * scale;
+                for (int dy = 0; dy < 18 * scale; dy++) {
+                    for (int dx = 0; dx < 18 * scale; dx++) {
+                        source.setRGB(x + dx, y + dy, 0xff000000 | (i + 1) << 16 | dy << 8 | dx);
+                    }
+                }
+            }
+            source.setRGB(130 * scale, 40 * scale, 0xffabcdef); // Crafting arrow.
+            byte[] original = ImageTransforms.png(source);
+            String path = "textures/gui/container/inventory.png";
+            write(folder, path, original);
+            try (PackResources pack = open(folder)) {
+                byte[] adapted = read(pack, path);
+                BufferedImage image = ImageIO.read(new ByteArrayInputStream(adapted));
+                assertEquals(source.getWidth(), image.getWidth());
+                for (int i = 0; i < oldSlots.length; i++) {
+                    var slot = menu.slots.get(i);
+                    for (int dy = 0; dy < 18 * scale; dy++) {
+                        for (int dx = 0; dx < 18 * scale; dx++) {
+                            assertEquals(source.getRGB((oldSlots[i][0] - 1) * scale + dx,
+                                            (oldSlots[i][1] - 1) * scale + dy),
+                                    image.getRGB((slot.x - 1) * scale + dx, (slot.y - 1) * scale + dy));
+                        }
+                    }
+                }
+                assertEquals(0xffabcdef, image.getRGB(140 * scale, 32 * scale));
+                assertEquals(source.getRGB(86 * scale, 25 * scale), image.getRGB(87 * scale, 25 * scale));
+                assertEquals(source.getRGB(86 * scale, 60 * scale), image.getRGB(110 * scale, 60 * scale));
+                for (int[] pixel : new int[][]{{8, 8}, {77, 62}, {8, 84}, {8, 142}, {180, 180}}) {
+                    assertEquals(source.getRGB(pixel[0] * scale, pixel[1] * scale),
+                            image.getRGB(pixel[0] * scale, pixel[1] * scale));
+                }
+                Map<Identifier, net.minecraft.server.packs.resources.IoSupplier<InputStream>> listed = new HashMap<>();
+                pack.listResources(PackType.CLIENT_RESOURCES, "minecraft", "textures/gui/container", listed::put);
+                try (InputStream input = listed.get(Identifier.withDefaultNamespace(path)).get()) {
+                    assertArrayEquals(adapted, input.readAllBytes());
+                }
+            }
+            assertArrayEquals(original, Files.readAllBytes(folder.resolve("assets/minecraft/" + path)));
+        }
+    }
+
+    @Test void newerAndInvalidInventoryTexturesAreNotShifted() throws Exception {
+        String path = "textures/gui/container/inventory.png";
+        byte[] current = ImageTransforms.png(coordinates(256, 256));
+        for (int format : new int[]{2, 3, 4, 80}) {
+            Path folder = folder(format);
+            write(folder, path, current);
+            try (PackResources pack = open(folder)) { assertArrayEquals(current, read(pack, path)); }
+        }
+        for (byte[] invalid : new byte[][]{new byte[]{0, 1}, ImageTransforms.png(coordinates(256, 128))}) {
+            Path folder = folder(1);
+            write(folder, path, invalid);
+            try (PackResources pack = open(folder)) { assertArrayEquals(invalid, read(pack, path)); }
         }
     }
 

@@ -47,6 +47,32 @@ public final class ImageTransforms {
                 slice.width() * scale, slice.height() * scale);
     }
 
+    /** Align the pre-1.9 crafting artwork with the current inventory's real slots. */
+    public static BufferedImage inventoryCrafting(BufferedImage source) throws IOException {
+        int scale = source.getWidth() / 256;
+        if (scale < 1 || source.getWidth() != scale * 256 || source.getHeight() != scale * 256) {
+            throw new IOException("Unexpected inventory texture dimensions");
+        }
+        int size = 256 * scale;
+        BufferedImage result = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        result.setRGB(0, 0, size, size, source.getRGB(0, 0, size, size, null, 0, size), 0, size);
+
+        // Old input slots start at (88, 26), the output at (144, 36).
+        // Both moved by (+10, -8) in 1.9. Include their borders and crafting arrow.
+        int x = 86 * scale, y = 24 * scale, width = 76 * scale, height = 38 * scale;
+        // The one-pixel gutter immediately left of the artwork is plain background.
+        // Extend it across the old position, retaining alpha and vertical shading.
+        for (int row = y; row < y + height; row++) {
+            for (int column = x; column < x + width; column++) {
+                result.setRGB(column, row, source.getRGB(x + (column - x) % scale, row));
+            }
+        }
+        // Read from the original so overlapping source/destination areas cannot smear.
+        result.setRGB(x + 10 * scale, y - 8 * scale, width, height,
+                source.getRGB(x, y, width, height, null, 0, width), 0, width);
+        return result;
+    }
+
     /** Repack the pre-1.15 cube faces into the current chest model's UV layout. */
     public static BufferedImage chest(BufferedImage source, String half) throws IOException {
         int scale = source.getHeight() / 64;
